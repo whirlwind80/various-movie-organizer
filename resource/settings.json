@@ -1,0 +1,10 @@
+{
+  "ext": {
+    "avi": ".avi",
+    "mp4": ".mp4",
+    "wmv": ".wmv"
+  },
+  "source": "D:/temp/source",
+  "dest": "X:/test/dest",
+  "err": "X:/test/err"
+}
