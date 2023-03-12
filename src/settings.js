@@ -12,6 +12,9 @@ export function readSettings() {
         
         settings['source'] = json['source']
         settings['ext'] = extSet
+        settings['target'] = json['target']
+        settings['temp'] = json['temp']
+        settings['error'] = json['error']
 
         console.log('settings are loaded')
     } catch (error) {        

@@ -2,10 +2,16 @@ export class FileData {
     constructor(id, original) {
         this._id = id
         this._original = original
+        this._product = ''
+        this._type = ''
     }
 
     get id() {
         return this._id
+    }
+
+    get original() {
+        return this._original
     }
 
     set product(value) {
@@ -25,10 +31,21 @@ export class FileData {
     }
 }
 
-export class ScrapData {
+export class ScrapeData {
     constructor(id) {
         this._id = id        
         this._tag = []
+        this._actor = []
+        this._title = ''
+        this._release = ''
+        this._year = ''
+        this._studio = ''
+        this._plot = ''
+        this._runtime = ''
+        this._thumb = ''
+        this._fanart = ''
+        this._director = ''
+        this._scrapped = false
     }
 
     get id() {
@@ -49,6 +66,11 @@ export class ScrapData {
 
     set release(value) {
         this._release = value
+        this._year = value.substring(0, 4)
+    }
+
+    get year() {
+        return this._year
     }
 
     get studio() {
@@ -83,14 +105,6 @@ export class ScrapData {
         this._actor = value
     }
 
-    get actorThumb() {
-        return this._actorThumb
-    }
-
-    set actorThumb(value) {
-        this._actorThumb = value
-    }
-
     get thumb() {
         return this._thumb
     }
@@ -113,6 +127,26 @@ export class ScrapData {
 
     set tag(value) {
         this._tag = value
+    }
+
+    get director() {
+        return this._director
+    }
+
+    set director(value) {
+        this._director = value
+    }
+
+    get scrapped() {
+        return this._scrapped
+    }
+
+    set scrapped(value) {
+        this._scrapped = value
+    }
+
+    addActor(value) {
+        this._actor.push(value)
     }
 
     addTag(value) {

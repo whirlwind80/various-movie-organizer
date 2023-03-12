@@ -5,6 +5,7 @@
     "wmv": ".wmv"
   },
   "source": "D:/temp/source",
-  "dest": "X:/test/dest",
-  "err": "X:/test/err"
+  "target": "D:/temp/target",
+  "temp": "D:/temp/temp",
+  "error": "D:/temp/error"
 }
