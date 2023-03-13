@@ -18,11 +18,20 @@ export default class Scraper {
     }
 
     async scrape() {
-        const promises = this._fileDataList.map(async (fileData) => {
+        let index = 0
+        while (index < this._fileDataList.length) {
+            index = await this.scrapeBatch(index)
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
+
+    async scrapeBatch(index) {
+        const batchSize = 5
+        const promises = this._fileDataList.slice(index, index + batchSize).map(async (fileData, index) => {            
+
             const type = fileData.type
             const product = fileData.product
             const fc2Scraper = new Fc2Scraper(this._settings)
-            const visit = []
 
             if(this._visit.includes(product)) {
             } else if(type === ProductType.FC2) {
@@ -30,11 +39,13 @@ export default class Scraper {
                 const scrapeData = await fc2Scraper.scrape(product)
                 this._scrapeMap.set(product, scrapeData)
 
-                console.debug(scrapeData)
+                //console.debug(scrapeData)
             }
         })
 
         await Promise.all(promises)
+
+        return index + batchSize
     }
 }
 
@@ -48,9 +59,14 @@ class Fc2Scraper {
     }
 
     async scrape(product) {
+        console.debug(`scraping: ${product}`)
         const scrapeData = await this.downloadText(product)
-        await this.downloadImage(scrapeData.thumb, 'poster', product)
+
+        if (scrapeData.scrapped) {
+            await this.downloadImage(scrapeData.thumb, product, 'poster')
+        }
         
+        console.debug(`scraping done: ${product}`)
         return scrapeData
     }
 
@@ -63,10 +79,12 @@ class Fc2Scraper {
         const response = await this._request.get(`/article/${keyword}/`)
         
         const $ = cheerio.load(response.data)
+        const scrapeData = new ScrapeData(product)
         
         if($('title').text().indexOf(notFoundMsg) >= 0) {
-            console.log('not found')
-            return
+            console.log(`not found: ${product}`)
+            scrapeData.scrapped = false
+            return scrapeData
         }
     
         const info = $('.items_article_headerInfo')
@@ -87,8 +105,7 @@ class Fc2Scraper {
         const thumbUrl = $('.items_article_MainitemThumb')
                 .find('img').attr('src')
         const runtime = $('.items_article_info').text()
-    
-        const scrapeData = new ScrapeData(product)
+            
         scrapeData.title = title
         scrapeData.release = release.match(datePattern)[0]
         scrapeData.studio = studio
@@ -98,8 +115,6 @@ class Fc2Scraper {
             scrapeData.addTag($(tag).text())
         })
         scrapeData.scrapped = true
-    
-        console.debug('scraped')
 
         return scrapeData
     }
@@ -108,10 +123,19 @@ class Fc2Scraper {
         const response = await this._request.get(url, { responseType: 'stream' });
         const extname = url.substring(url.lastIndexOf('.'))
 
-        const filePath = path.resolve(this._settings['target'], `${product}-${suffix}${extname}`)
+        const filePath = path.resolve(this._settings['temp'], `${product}-${suffix}${extname}`)
         const writer = fs.createWriteStream(filePath)
-        
-        response.data.pipe(writer)        
+
+        try {
+            return await new Promise(function(resolve, reject) {
+                writer.on('error', reject);
+                writer.on('finish', resolve);
+                response.data.pipe(writer);                
+              });
+        } catch(error) {
+            writer.end();
+            throw error;
+        }
     }
 }
 
